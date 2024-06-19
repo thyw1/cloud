@@ -33,6 +33,10 @@ public class Constant {
      */
     public enum CloudService {
         /**
+         * 本地
+         */
+        LOCAL(0),
+        /**
          * 七牛云
          */
         QINIU(1),

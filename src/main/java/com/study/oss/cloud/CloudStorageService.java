@@ -1,10 +1,11 @@
 package com.study.oss.cloud;
 
-import cn.hutool.core.io.resource.Resource;
 import com.study.oss.common.utils.DateUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
+import javax.naming.CommunicationException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.UUID;
@@ -16,6 +17,8 @@ import java.util.UUID;
 public abstract class CloudStorageService {
     /** 云存储配置信息 */
     CloudStorageConfigProperties config;
+
+
 
     /**
      * 文件路径
@@ -42,7 +45,7 @@ public abstract class CloudStorageService {
      * @param path    文件路径，包含文件名
      * @return        返回http地址
      */
-    public abstract String upload(byte[] data, String path);
+    public abstract String upload(byte[] data, String path,Long parentId);
 
     /**
      * 文件上传
@@ -50,7 +53,7 @@ public abstract class CloudStorageService {
      * @param suffix   后缀
      * @return         返回http地址
      */
-    public abstract String uploadSuffix(byte[] data, String suffix);
+    public abstract String uploadSuffix(byte[] data, String suffix,Long parentId) throws CommunicationException;
 
     /**
      * 文件上传
@@ -58,7 +61,7 @@ public abstract class CloudStorageService {
      * @param path          文件路径，包含文件名
      * @return              返回http地址
      */
-    public abstract String upload(InputStream inputStream, String path);
+    public abstract String upload(InputStream inputStream, String path,Long parentId);
 
     /**
      * 文件上传
@@ -66,8 +69,17 @@ public abstract class CloudStorageService {
      * @param suffix       后缀
      * @return             返回http地址
      */
-    public abstract String uploadSuffix(InputStream inputStream, String suffix);
+    public abstract String uploadSuffix(InputStream inputStream, String suffix,Long parentId);
 
-    public abstract ResponseEntity<Resource> downLoad(String fileId);
 
+
+    /**
+     * 创建文件夹
+     * @param parentId
+     * @param dirName
+     */
+    public abstract void mkdir(Long parentId,String dirName) throws CommunicationException;
+
+
+    public abstract Resource loadResource(String fileId);
 }

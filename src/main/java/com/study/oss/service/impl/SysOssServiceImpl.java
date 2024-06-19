@@ -1,6 +1,7 @@
 package com.study.oss.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.study.oss.common.utils.PageUtils;
@@ -18,8 +19,22 @@ public class SysOssServiceImpl extends ServiceImpl<SysOssDao, SysOssEntity> impl
 
 	@Override
 	public PageUtils queryPage(Map<String, Object> params) {
+		LambdaQueryWrapper<SysOssEntity> wrapper = new LambdaQueryWrapper<>();
+		//根据目录查
+		if (params.containsKey("parentId")){
+			String parentId = params.get("parentId").toString();
+			if(parentId==null || "".equals(parentId))
+				parentId="0";
+			wrapper.eq(SysOssEntity::getParentId, parentId);
+		}
+		//文件名模糊搜索
+		if(params.containsKey("fileName")){
+			wrapper.like(SysOssEntity::getFileName,params.get("fileName"));
+		}
+
 		IPage<SysOssEntity> page = this.page(
-			new Query<SysOssEntity>().getPage(params)
+			new Query<SysOssEntity>().getPage(params),
+				wrapper
 		);
 
 		return new PageUtils(page);

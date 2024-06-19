@@ -22,18 +22,15 @@ public class SysOssEntity implements Serializable {
 	private Long id;
 	//URL地址
 	private String url;
-
-
-
-
-
+	//加入文件层级概念
+	private Long parentId;
+	//文件来源
+	private int source;
+	//fileName+filePath 是完整路径
 	private String fileName;
-
 	private String filePath;
-
-	private String type;
+	private int type;
 	private Long size;
-
 
 	private Date createTime = new Date();
 	private Date updateTime = new Date();
