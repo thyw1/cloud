@@ -33,37 +33,36 @@ public class LocalCloudStorageService extends CloudStorageService {
     private CloudStorageConfigProperties cloudStorageConfigProperties;
 
 
-    public LocalCloudStorageService(CloudStorageConfigProperties config){
+    public LocalCloudStorageService(CloudStorageConfigProperties config) {
         this.config = config;
+
     }
 
 
     /**
-     *
-     * @param data    文件字节数组
+     * @param data     文件字节数组
      * @param filePath D:\\lizi\ms\11_11_219.253731_11_11.TIF
      * @param parentId
      * @return
      */
     @Override
-    public String upload(byte[] data, String filePath,Long parentId) {
-        if(parentId==null)
-            parentId=0L;
+    public String upload(byte[] data, String filePath, Long parentId) {
+        if (parentId == null)
+            parentId = 0L;
         SysOssEntity sysOssEntity = new SysOssEntity();
         String filename = filePath.substring(filePath.lastIndexOf(File.separator) + 1);
         SysOssEntity one = sysOssService.getOne(new LambdaQueryWrapper<SysOssEntity>().eq(SysOssEntity::getParentId, parentId).eq(SysOssEntity::getFileName, filename));
-        //TODO MD5判断？
         //文件重名了 就加几个随机字符
-        if(one!=null){
+        if (one != null) {
             String fileNamePre = filename.substring(0, filename.lastIndexOf("."));
             String suffix = filename.substring(filename.lastIndexOf("."));
-            filename= fileNamePre+UUID.randomUUID().toString().substring(0,4)+suffix;
+            filename = fileNamePre + UUID.randomUUID().toString().substring(0, 4) + suffix;
         }
 
         try {
             String strDir = filePath.substring(0, filePath.lastIndexOf(File.separator)); //  D:\\lizi\ms
             Path dir = Paths.get(strDir);//  D:\\lizi\ms
-            filePath=dir+File.separator+filename;  //   D:\lizi\ms\11_11_219.253731_11_1128ee.TIF
+            filePath = dir + File.separator + filename;  //   D:\lizi\ms\11_11_219.253731_11_1128ee.TIF
             if (!Files.isWritable(dir)) {
                 Files.createDirectories(dir);
             }
@@ -77,7 +76,7 @@ public class LocalCloudStorageService extends CloudStorageService {
             sysOssEntity.setParentId(parentId);
             sysOssService.save(sysOssEntity);
 
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("上传文件失败，请检查配置信息", e);
         }
 
@@ -86,26 +85,26 @@ public class LocalCloudStorageService extends CloudStorageService {
 
 
     @Override
-    public String upload(InputStream inputStream, String path,Long parentId) {
+    public String upload(InputStream inputStream, String path, Long parentId) {
         return null;
     }
 
     @Override
-    public String uploadSuffix(InputStream inputStream, String suffix,Long parentId) {
-        return upload(inputStream, getPath(config.getAliyunPrefix(), suffix),parentId);
+    public String uploadSuffix(InputStream inputStream, String suffix, Long parentId) {
+        return upload(inputStream, getPath(config.getAliyunPrefix(), suffix), parentId);
     }
 
-    public Resource loadResource(String fileId){
+    public Resource loadResource(String fileId) {
         SysOssEntity entity = sysOssService.getById(fileId);
         if (Objects.isNull(entity)) {
             throw new RuntimeException("没有该文件");
         }
         try {
-            Path filePath = new java.io.File(entity.getFilePath()+File.separator+entity.getFileName()).toPath();
+            Path filePath = new java.io.File(entity.getFilePath() + File.separator + entity.getFileName()).toPath();
             org.springframework.core.io.Resource resource = new UrlResource(filePath.toUri());
 
-            if (resource.exists()){
-                return  resource;
+            if (resource.exists()) {
+                return resource;
             } else {
                 throw new RuntimeException("没有该文件");
             }
@@ -116,14 +115,25 @@ public class LocalCloudStorageService extends CloudStorageService {
     }
 
 
-
     @Override
     public void mkdir(Long parentId, String dirName) throws CommunicationException {
 
+        if (parentId == null) {
+            SysOssEntity sysOssEntity = sysOssService.getOne(new LambdaQueryWrapper<SysOssEntity>().eq(SysOssEntity::getFileName, cloudStorageConfigProperties.getBasicPath()));
+            if (sysOssEntity == null) {
+                sysOssEntity = new SysOssEntity();
+                sysOssEntity.setSource(cloudStorageConfigProperties.getType());
+                sysOssEntity.setFileName(cloudStorageConfigProperties.getBasicPath());
+                sysOssEntity.setType(FileConstant.FileType.FOLDER.getCode());
+                sysOssEntity.setParentId(-1L);
+                sysOssService.save(sysOssEntity);
+            }
+            parentId = sysOssEntity.getId();
+        }
         SysOssEntity parentFolder = sysOssService.getById(parentId);
         //先判断是否以及存在
         SysOssEntity one = sysOssService.getOne(new LambdaQueryWrapper<SysOssEntity>().eq(SysOssEntity::getParentId, parentId).eq(SysOssEntity::getFileName, dirName));
-        if(one!=null)
+        if (one != null)
             throw new CommunicationException("已存在同名文件夹 不可再创建");
         String filePath = parentFolder.getFilePath() + File.separator + parentFolder.getFileName() + File.separator + dirName;
         //创建文件夹
@@ -149,19 +159,35 @@ public class LocalCloudStorageService extends CloudStorageService {
 
     /**
      * 指定路径上传
+     *
      * @param bytes
-     * @param suffix 11_11_219.253731_11_11.TIF
+     * @param suffix   11_11_219.253731_11_11.TIF
      * @param parentId
      * @return
      */
     @Override
     public String uploadSuffix(byte[] bytes, String suffix, Long parentId) throws CommunicationException {
-        if(parentId==null)
-            parentId=0L;
-        SysOssEntity entity = sysOssService.getById(parentId);
-        if(entity.getType()!= FileConstant.FileType.FOLDER.getCode()){
-            throw new CommunicationException("指定文件夹有误");
+        SysOssEntity sysOssEntity = sysOssService.getOne(new LambdaQueryWrapper<SysOssEntity>().eq(SysOssEntity::getFileName, config.getBasicPath()));
+        if (sysOssEntity == null) {
+            sysOssEntity = new SysOssEntity();
+            sysOssEntity.setSource(config.getType());
+            sysOssEntity.setFileName(config.getBasicPath());
+            sysOssService.save(sysOssEntity);
         }
-        return upload(bytes, entity.getFilePath()+File.separator+entity.getFileName()+File.separator+suffix,parentId);
+        String filePath = "";
+        if (parentId == null) {
+            parentId = sysOssEntity.getId();
+        }
+
+        SysOssEntity entity = sysOssService.getById(parentId);
+        if (parentId != 0L && entity.getType() != FileConstant.FileType.FOLDER.getCode())
+            throw new CommunicationException("指定文件夹有误");
+        if (entity.getFilePath() != null)
+            filePath = entity.getFilePath() + File.separator;
+        filePath += entity.getFileName() + File.separator + suffix;
+
+
+        return upload(bytes, filePath, parentId);
+
     }
 }

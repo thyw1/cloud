@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>网盘首页</title>
+    <link rel="stylesheet" th:href="@{/static/css/One_bdyStyle.css}">
+    <link rel="stylesheet" th:href="@{/static/css/index.css}">
+    <link rel="stylesheet" th:href="@{/static/css/One_mainFoot.css}">
+<!--    <link rel="stylesheet" th:href="@{/static/fontawesome/css/all.css}"/>-->
+    <link rel="stylesheet" th:href="@{/static/css/list.css}"/>
+    <script th:src="@{/static/js/jquery-3.1.1.min.js}" charset="utf-8"></script>
+    <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.css}"/>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+</head>
+<body>
+<header>
+    <a name="mao1">
+        <div class="header">
+
+            <ul class="header-left">
+                <li>
+
+                    <a href="#">首页</a>
+                </li>
+
+            </ul>
+            <div style="clear: both;"></div>
+        </div>
+
+    </a>
+</header>
+
+
+<div class="one_search">
+
+    <div class="one_sousuo">
+        <div class="one_search_top">
+            <div class="one_top_left">
+            </div>
+            <div class="one_top_right">
+                <input id="keyword_input" type="text" name="fileName" class="one_right_txt" placeholder="" onfocus="this.placeholder=''"
+                       onblur="this.placeholder='' ">
+                <span onclick="searchByKeyword(); return false;">搜索</span>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="One_BdyShop">
+    <div class="OneBdy_box">
+        <div class="One_tabTop" style="height: 150px">
+            <div class="One_Topleft">
+                <span>文件</span>
+            </div>
+            <div class="One_Topright" >
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:value="${parentId}" name="parentId">
+                    <input class="" type="file" id="fileupload" name="file">
+                    <input type="submit" class="btn btn-primary" value="上传文件">
+                </form>
+            </div>
+        </div>
+        <div class="One_ShopTop">
+            <ul>
+                <li><input type="checkbox" class="allCheck">全选</li>
+                <li>文件名</li>
+                <li>修改日期</li>
+                <li>类型</li>
+                <li>操作</li>
+            </ul>
+        </div>
+
+        <div class="One_ShopCon">
+            <h1 th:if="${page.list == null}">
+                当前还没有文件~
+            </h1>
+            <ul th:if="${page.list != null}">
+                <li th:each="item:${page.list}">
+                    <div>
+                    </div>
+                    <div>
+                        <ol>
+                            <li><input type="checkbox" th:attr="skuId=${item.id}" class="itemChecked check" ></li>
+                            <li th:fileId="${item.id}" th:type="${item.type}" onclick="changeFilePath(this.getAttribute('fileId'),this.getAttribute('type'))">
+                                <i style="height: 10px;width: auto" th:class="${item.type==1}?'fa fa-folder':'fa fa-file'" ></i>
+                                <span th:text="${item.fileName}">一张图.jpg</span>
+                            </li>
+                            <li>
+                                <span th:text="${item.updateTime}">2024-06-20 15:02</span>
+                            </li>
+                            <li>
+                                <span th:text="${item.type==1}?'文件夹':'普通文件'">0</span>
+                            </li>
+
+                            <li>
+                                <button th:if="${item.type!=1}"  type="button" class="deleteItemBtn btn btn-primary" th:fileId="${item.id}" th:onclick="deleteItem(this.getAttribute('fileId'))">下载</button>
+                            </li>
+                        </ol>
+                    </div>
+                </li>
+
+            </ul >
+        </div>
+
+    </div>
+    <!-- 隐藏一个表单，用于提交数据 -->
+    <form id="selectedIdsForm" method="get" action="/downloadlist" style="display: none;">
+        <!-- 将会动态添加input字段 -->
+    </form>
+    <div style="text-align: center">
+        <button th:if="${source==0}" style="" id="submitSelectedIds" class="btn btn-primary"onclick="submitSelectedIds()">下载选中项</button>
+    </div>
+
+
+
+</div>
+
+
+<div class="one_footer" style="margin-bottom: 20px">
+    <!--分页-->
+    <div class="filter_page" style="margin-top: 20px">
+        <div class="page_wrap">
+            <span class="page_span1">
+                <a class="page_a" th:attr="pn=${page.currPage - 1}"  th:if="${page.currPage>1}">< 上一页</a>
+                <a class="page_a" th:attr="pn=${page.currPage + 1}" th:if="${page.currPage<page.totalPage}">下一页 ></a>
+            </span>
+            <span class="page_span2">
+                <em>共<b>[[${page.totalPage}]]</b>页&nbsp;</em>&nbsp;
+            </span>
+        </div>
+    </div>
+
+</div>
+</body>
+<script th:src="@{/static/js/index.js}" charset="utf-8"></script>
+<script type="text/javascript">
+
+    //购物车顶端tab
+    $(".One_Topleft span:last-child").mouseover(function () {
+        $(".One_Topleft span:first-child").css({
+            "color": "black",
+            "border-bottom": "none"
+        })
+        $(this).css({
+            "cursor": "pointer",
+            "color": "#E4393C",
+            "border-bottom": "2px solid red"
+        })
+    }).mouseout(function () {
+        $(this).css({
+            "color": "black",
+            "border-bottom": "none"
+        });
+        $(".One_Topleft span:first-child").css({
+            "cursor": "pointer",
+            "color": "#E4393C",
+            "border-bottom": "2px solid red"
+        })
+    })
+
+    //右侧固定定位
+    $(".One_RightFix ul>li:not(:first-child)").mouseover(function () {
+        $(this).css({
+            "cursor": "pointer",
+            "background": "#C91423"
+        })
+        $(this).children("ol").stop().animate({
+            "left": "-75px"
+        }, 200)
+    }).mouseout(function () {
+        $(this).css("background", "#7A6E6E");
+        $(this).children("ol").stop().animate({
+            "left": "75px"
+        }, 200)
+    })
+
+    //右侧底部固定定位
+    $(".One_RightbtmFix ul>li").mouseover(function () {
+        $(this).css({
+            "cursor": "pointer",
+            "background": "#C91423"
+        })
+        $(this).children("ol").stop().animate({
+            "left": "-55px"
+        }, 200)
+    }).mouseout(function () {
+        $(this).css("background", "#7A6E6E");
+        $(this).children("ol").stop().animate({
+            "left": "55px"
+        }, 200)
+    })
+
+    $(".One_Local>ul>li>ol li").click(function () {
+        $(this).parent().parent().children("label").html($(this).html())
+    })
+    //购物车全选反选
+    $(".allCheck").click(function () {
+        if ($(".allCheck").is(":checked")) {
+            // $(".check").each(function(index){
+            $(".check").prop("checked", true);
+            $(".check").parent().parent().parent().css("background", "#fff4e8");
+            // })
+        } else {
+            // $(".check").each(function(){
+            $(".check").parent().parent().parent().css("background", "none");
+            $(".check").prop("checked", false);
+        }
+    })
+
+    // 单个复选框的点击事件
+    $(".check").click(function () {
+        // 检查是否所有复选框都被选中
+        var allChecked = $(".check:checked").length == $(".check").length;
+        $(".allCheck").prop("checked", allChecked);
+
+        // 根据需要更改背景色（这里只更改当前行的背景色作为示例）
+        if ($(this).is(":checked")) {
+            $(this).closest("ol").parent().css("background", "#fff4e8");
+        } else {
+            $(this).closest("ol").parent().css("background", "none");
+        }
+
+    });
+
+
+    $(".One_DengLu>p:first-child span:last-child img").click(function () {
+        $(".One_mb").hide();
+        $(".One_DengLu").hide();
+    })
+
+    //选中当前商品背景变色
+    $(".check").each(function (index) {
+        $(".check").eq(index).click(function () {
+            if ($(this).is(":checked")) {
+                $(this).parent().parent().parent().css("background", "#fff4e8");
+                $(this).parent().parent().parent().parent().children("div:last-child").css("background", "#fff4e8")
+            } else {
+                $(this).parent().parent().parent().parent().children("div:last-child").css("background", "none")
+                $(this).parent().parent().parent().css("background", "none")
+            }
+        })
+    })
+    //商品删除鼠标移入变色
+    $(".One_ShopCon ul li>div:nth-child(2) ol>li:nth-child(6) p").mouseover(function () {
+        $(this).css({
+            "cursor": "pointer",
+            "color": "#e64346"
+        });
+    }).mouseout(function () {
+        $(this).css({
+            "cursor": "pointer",
+            "color": "gray"
+        });
+    })
+    $(".One_ShopCon ul li>div:nth-child(2) ol>li:nth-child(6) p:nth-child(2)").click(function () {
+        $(".One_mb").show();
+        $(".One_moveMyGz").show();
+    })
+    $(".One_ShopCon ul li>div:nth-child(2) ol>li:nth-child(6) p:last-child").click(function () {
+        $(".One_mb").show();
+        $(".One_DengLu").show();
+    })
+
+
+
+
+    function replaceParamVal(url, paramName, replaceVal,forceAdd) {
+        var oUrl = url.toString();
+        var nUrl;
+        if (oUrl.indexOf(paramName) != -1) {
+            if( forceAdd ) {
+                if (oUrl.indexOf("?") != -1) {
+                    nUrl = oUrl + "&" + paramName + "=" + replaceVal;
+                } else {
+                    nUrl = oUrl + "?" + paramName + "=" + replaceVal;
+                }
+            } else {
+                var re = eval('/(' + paramName + '=)([^&]*)/gi');
+                nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
+            }
+        } else {
+            if (oUrl.indexOf("?") != -1) {
+                nUrl = oUrl + "&" + paramName + "=" + replaceVal;
+            } else {
+                nUrl = oUrl + "?" + paramName + "=" + replaceVal;
+            }
+        }
+        return nUrl;
+    };
+
+    $(".page_a").click(function () {
+        var pn = $(this).attr("pn");
+        var href = location.href;
+        if (href.indexOf("page") != -1) {
+            //替换pageNum
+            location.href = replaceParamVal(href, "page", pn);
+        } else if(href.indexOf("?")!=-1) {
+            location.href = location.href + "&page=" + pn;
+        }else {
+            location.href=location.href+"?page="+pn;
+        }
+        return false;
+    })
+
+    let fileId = 0;
+    $(".deleteItemBtn").click(function () {
+        fileId = $(this).attr("fileId");
+    });
+
+    //删除购物车选项
+    function deleteItem(fileId) {
+        window.location.href = "/file/download/" + fileId;
+    }
+    function searchByKeyword() {
+        searchProducts("fileName", $("#keyword_input").val());
+    }
+    function searchProducts(name, value) {
+        var href = location.href;
+        if(href.indexOf("#")!=-1){
+            location.href = replaceParamVal(location.href,"#","")
+        }
+        //原來的页面
+        if (href.indexOf("fileName") != -1) {
+            //替换pageNum
+            location.href = replaceParamVal(location.href,"fileName",value)
+        } else if(href.indexOf("?")!=-1) {
+            location.href = location.href + "&fileName=" + value;
+        }else {
+            location.href=location.href+"?fileName="+value;
+        }
+    }
+
+    function changeFilePath(id,type) {
+        if(type==1){
+            var href = location.href;
+            if(href.indexOf("#")!=-1){
+                location.href = replaceParamVal(location.href,"#","")
+            }
+            //原來的页面
+            if (href.indexOf("parentId") != -1) {
+                //替换pageNum
+                location.href = replaceParamVal(location.href,"parentId",id)
+            } else if(href.indexOf("?")!=-1) {
+                location.href = location.href + "&parentId=" + id;
+            }else {
+                location.href=location.href+"?parentId="+id;
+            }
+
+        }
+
+    }
+
+
+    $(document).ready(function() {
+        $("#submitSelectedIds").click(function() {
+            var selectedIds = [];
+            $(".check:checked").each(function() {
+                var itemId = $(this).attr('skuId'); // 假设您的checkbox有一个名为'skuId'的属性
+                selectedIds.push(itemId);
+            });
+
+            if (selectedIds.length > 0) {
+                // 构建查询字符串
+                var queryString = selectedIds.map(function(id) {
+                    return 'fileIds=' + encodeURIComponent(id); // 注意这里不需要'fileIds[]'除非后端需要数组
+                }).join('&');
+
+                var url = '/downLoadList?' + queryString;
+
+                // 创建一个隐藏的a标签
+                var downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = 'downloaded_files.zip'; // 设置下载文件名，这取决于你的后端是否支持
+                document.body.appendChild(downloadLink); // 添加到DOM中
+
+                // 模拟点击
+                downloadLink.click();
+
+                // 清理
+                document.body.removeChild(downloadLink);
+                // 使用$.ajax()发送GET请求并设置responseType为'blob'
+                // $.ajax({
+                //     url: url,
+                //     type: 'GET',
+                //     responseType: 'blob', // 告诉jQuery我们期望返回的是Blob对象
+                //     success: function(blob, status, xhr) {
+                //         // 创建一个Blob URL
+                //         var url = URL.createObjectURL(blob);
+                //         // 创建一个<a>标签
+                //         var a = document.createElement('a');
+                //         a.href = url;
+                //         // 设置下载文件名
+                //         // 注意：这里可能需要后端提供一个文件名或者通过其他方式生成文件名
+                //         a.download = 'download.zip'; // 假设文件是ZIP格式，你可以根据需要修改文件名和扩展名
+                //         // 触发下载
+                //         a.click();
+                //         // 释放Blob URL
+                //         URL.revokeObjectURL(url);
+                //     },
+                //     error: function(jqXHR, textStatus, errorThrown) {
+                //         console.error('提交选中项失败：', textStatus, errorThrown);
+                //     }
+                // });
+            } else {
+                alert('没有选中任何项。');
+            }
+        });
+    });
+
+</script>
+</html>
