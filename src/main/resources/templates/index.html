@@ -293,8 +293,10 @@
         var pn = $(this).attr("pn");
         var href = location.href;
         if (href.indexOf("page") != -1) {
+            url = replaceParamVal(href, "page", pn);
+            console.log(url)
             //替换pageNum
-            location.href = replaceParamVal(href, "page", pn);
+            location.href = url
         } else if(href.indexOf("?")!=-1) {
             location.href = location.href + "&page=" + pn;
         }else {
@@ -317,35 +319,39 @@
     }
     function searchProducts(name, value) {
         var href = location.href;
-        if(href.indexOf("#")!=-1){
-            location.href = replaceParamVal(location.href,"#","")
+        if (href.indexOf("page") != -1) {
+            //替换pageNum
+            href = replaceParamVal(href, "page", 1);
         }
         //原來的页面
         if (href.indexOf("fileName") != -1) {
             //替换pageNum
-            location.href = replaceParamVal(location.href,"fileName",value)
+            href = replaceParamVal(href,"fileName",value)
         } else if(href.indexOf("?")!=-1) {
-            location.href = location.href + "&fileName=" + value;
+            href = href + "&fileName=" + value;
         }else {
-            location.href=location.href+"?fileName="+value;
+            href=href+"?fileName="+value;
         }
+        location.href = href;
     }
 
     function changeFilePath(id,type) {
         if(type==1){
             var href = location.href;
-            if(href.indexOf("#")!=-1){
-                location.href = replaceParamVal(location.href,"#","")
+            if (href.indexOf("page") != -1) {
+                //替换pageNum
+                href = replaceParamVal(href, "page", "1");
             }
             //原來的页面
             if (href.indexOf("parentId") != -1) {
                 //替换pageNum
-                location.href = replaceParamVal(location.href,"parentId",id)
+                href = replaceParamVal(href,"parentId",id)
             } else if(href.indexOf("?")!=-1) {
-                location.href = location.href + "&parentId=" + id;
+                href = href + "&parentId=" + id;
             }else {
-                location.href=location.href+"?parentId="+id;
+                href=href+"?parentId="+id;
             }
+            location.href = href;
 
         }
 

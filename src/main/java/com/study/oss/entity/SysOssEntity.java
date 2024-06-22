@@ -1,12 +1,15 @@
 package com.study.oss.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -34,5 +37,10 @@ public class SysOssEntity implements Serializable {
 
 	private Date createTime = new Date();
 	private Date updateTime = new Date();
+
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@TableField(exist = false)
+	private List<SysOssEntity> children;
+
 
 }
